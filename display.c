@@ -12,7 +12,7 @@ int main(int argc,char** argv)
     
     SDL_Texture* img_tex=SDL_CreateTextureFromSurface(ren,img);//以内存中的图片为来源创建一个一模一样的贴图
     SDL_FreeSurface(img);//img没用了，释放它节省内存;
-    /*Mona Smells*/
+    /*Mona pretty*/
     SDL_RenderClear(ren);//清理一下渲染器
     SDL_RenderCopy(ren,img_tex,NULL,NULL);//将贴图复制到渲染器
     SDL_RenderPresent(ren);//显示渲染器
