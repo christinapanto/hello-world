@@ -2,7 +2,7 @@
 #include <SDL2/SDL.h>
 int main(int argc,char** argv)
 {
-    /*Marshall is cool*/
+    /*Marshall is idiot*/
     argc = argc;
     argv = argv;
     SDL_Init(SDL_INIT_VIDEO);//初始化SDL
