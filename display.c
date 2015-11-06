@@ -12,29 +12,29 @@
     };
     
     display *newDisplay(int width, int height) {
-    display *d = malloc(sizeof(struct display));
-    d->width = width=30;
-    d->height = height=12;
-    d->imageHeight = d->imageWidth = 20;
-    int result = SDL_Init(SDL_INIT_VIDEO);
-    if (result < 0){
-        SDL_Fail("Bad SDL");
+        display *d = malloc(sizeof(struct display));
+        d->width = width=30;
+        d->height = height=12;
+        d->imageHeight = d->imageWidth = 20;
+        int result = SDL_Init(SDL_INIT_VIDEO);
+        if (result < 0){
+            SDL_Fail("Bad SDL");
+        }
+        int w = d->width * d->imageWidth, h = d->height * d->imageHeight;
+        d->window = SDL_CreateWindow("Restaurant", SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 600, 400,SDL_WINDOW_SHOWN);
+        if (d->window == NULL){
+            SDL_Fail("Bad window");
+        }
+        d->surface = SDL_GetWindowSurface(d->window);
+        if (d->surface == NULL) {
+            SDL_Fail("Bad surface");
+        }
+        /*loadAllImages(d);*/
+        return d;
     }
-    int w = d->width * d->imageWidth, h = d->height * d->imageHeight;
-    d->window = SDL_CreateWindow("Restaurant", SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 600, 400,SDL_WINDOW_SHOWN);
-    if (d->window == NULL){
-        SDL_Fail("Bad window");
-    }
-    d->surface = SDL_GetWindowSurface(d->window);
-    if (d->surface == NULL) {
-        SDL_Fail("Bad surface");
-    }
-    /*loadAllImages(d);*/
-    return d;
-}
  
  
-    /* Load all the images we will be using durong the game.
+    /* Load all the images we will be using during the game.
     static void loadAllImages(display *d) {
     loadImage(d, '.', "alien1.bmp");
     loadImage(d, '#', "alien2.bmp");
@@ -42,11 +42,12 @@
     loadImage(d, '@', "player.bmp");
 }   */
     
-    /*Uplodaing the image*/
+    /*Uploading the image*/
     SDL_Surface* img=SDL_LoadBMP("Restuarant.bmp");
     /*Testing if we read the image or not*/
-    if (img == NULL) SDL_Fail("Bad image file");
-    
+    if (img == NULL) {
+        SDL_Fail("Bad image file");
+    }
     SDL_Renderer* ren =SDL_CreateRenderer(win, -1,SDL_RENDERER_ACCELERATED);
     SDL_Texture* img_tex=SDL_CreateTextureFromSurface(ren,img);
     SDL_FreeSurface(img);
@@ -59,5 +60,13 @@
     SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(win);
     SDL_Quit();
+    
+    /*Creating a fail functions so as if there any errors, it will print the SDL error message if any, and stop the program.*/
+    static void SDL_Fail(char *s) 
+    {
+        fprintf(stderr, "%s %s\n", s, SDL_GetError());
+        SDL_Quit();
+        exit(1);
+    }
     return 0;
 }
