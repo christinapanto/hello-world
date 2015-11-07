@@ -23,7 +23,7 @@
         int w = d->width * d->imageWidth, h = d->height * d->imageHeight;
         d->window = SDL_CreateWindow("Restaurant", SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 600, 400,SDL_WINDOW_SHOWN);
         if (d->window == NULL){
-            SDL_Fail("Bad window");
+            SDL_Fail("Could not create window");
         }
         d->surface = SDL_GetWindowSurface(d->window);
         if (d->surface == NULL) {
