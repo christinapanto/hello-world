@@ -67,24 +67,30 @@
     loadImage(d, '*', "alien3.bmp");
     loadImage(d, '@', "player.bmp");
 } 
-    
-    /*Uploading the image*/
-    SDL_Surface* img=SDL_LoadBMP("Restuarant.bmp");
-    /*Testing if we read the image or not*/
-    if (img == NULL) {
-        SDL_Fail("Bad image file");
+
+void drawEntity(display *d, int k, int x, int y) {
+    int px = x * d->imageWidth;
+    int py = y * d->imageHeight;
+    SDL_Surface *image = d->images[k];
+    if (image == NULL){ 
+        SDL_Fail("No image");
     }
-    SDL_Renderer* ren =SDL_CreateRenderer(win, -1,SDL_RENDERER_ACCELERATED);
-    SDL_Texture* img_tex=SDL_CreateTextureFromSurface(ren,img);
-    SDL_FreeSurface(img);
-    SDL_RenderClear(ren);
-    //SDL_RenderCopy(ren,img_tex,NULL,NULL);//
-    SDL_RenderPresent(ren);//
-    SDL_Delay(15000);//
+    SDL_Rect box_structure = { px, py, d->imageWidth, d->imageHeight };
+    SDL_Rect *box = &box_structure;
+    int r = SDL_BlitSurface(image, NULL, d->surface, box);
+    if (r < 0){
+        SDL_Fail("Bad image display");
+    }
+}
+
+void drawFrame(display *d) {
+    int r = SDL_UpdateWindowSurface(d->window);
+    if (r < 0) SDL_Fail("Bad window repaint");
+    SDL_Delay(20);
+}
     
-    SDL_DestroyTexture(img_tex);
-    SDL_DestroyRenderer(ren);
-    SDL_DestroyWindow(win);
+    SDL_Delay(15000);
+
     SDL_Quit();
     
     
