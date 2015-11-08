@@ -9,8 +9,18 @@
         SDL_Window *window;
         SDL_Surface *surface;
         SDL_Surface *images[128];
+        SDL_Event *event;
     };
     
+    /*Creating a fail functions so as if there any errors, it will print the SDL error message if any, and stop the program.*/
+    static void SDL_Fail(char *s) 
+    {
+        fprintf(stderr, "%s %s\n", s, SDL_GetError());
+        SDL_Quit();
+        exit(1);
+    }
+    
+    /*Initialize the display and the surface*/
     display *newDisplay(int width, int height) {
         display *d = malloc(sizeof(struct display));
         d->width = width=30;
@@ -33,14 +43,30 @@
         return d;
     }
  
- 
-    /* Load all the images we will be using during the game.
+ // Load an image, corresponding to a given kind of entity
+    static void loadImage(display *d, int k, char *filename) {
+        char path[100];
+        strcpy(path, "images/");
+        strcat(path, filename);
+        SDL_Surface *image = SDL_LoadBMP(path);
+        if (image == NULL){
+            SDL_Fail("Bad image file");
+        }
+        if (image->w != d->imageWidth){
+            SDL_Fail("Bad image size");
+        }
+        if (image->h != d->imageHeight){ 
+            SDL_Fail("Bad image size");
+        }
+        d->images[k] = image;
+}
+    /* Load all the images we will be using during the game.*/
     static void loadAllImages(display *d) {
     loadImage(d, '.', "alien1.bmp");
     loadImage(d, '#', "alien2.bmp");
     loadImage(d, '*', "alien3.bmp");
     loadImage(d, '@', "player.bmp");
-}   */
+} 
     
     /*Uploading the image*/
     SDL_Surface* img=SDL_LoadBMP("Restuarant.bmp");
@@ -61,12 +87,6 @@
     SDL_DestroyWindow(win);
     SDL_Quit();
     
-    /*Creating a fail functions so as if there any errors, it will print the SDL error message if any, and stop the program.*/
-    static void SDL_Fail(char *s) 
-    {
-        fprintf(stderr, "%s %s\n", s, SDL_GetError());
-        SDL_Quit();
-        exit(1);
-    }
+    
     return 0;
 }
