@@ -6,13 +6,16 @@ bool ctrl_pressed;
 struct display {
     SDL_Surface *surface;
     SDL_Window *window;
------test
+    SDL_Renderer *renderer;
+    SDL_Texture *background;
+    SDL_Texture *texture;
+    TTF_Font *font;
     Uint32 red;
-    SDL_Csadasdasolor bg, fg;
+    SDL_Color bg, fg;
     SDL_Rect rectangle;
-    SDL_Surface *asdasdasdimage[128];
+    SDL_Surface *image[128];
     SDL_Event *event;
-    SDL_Rect *box;sdad
+    SDL_Rect *box;
 };
 
 struct Button {
@@ -246,7 +249,7 @@ static void SDL_Fail(char *s, display *d) {
 }
 
 /* SDL_Quit() takes no arguments, and should be called at the end
- of your program, and it just undoes whatever SDL_Init has done.
+of your program, and it just undoes whatever SDL_Init has done.
 In theory, nothing bad will happen if you don't, but better to
 be safe than sorry! */
 void QuitGame(display *d)
@@ -263,7 +266,7 @@ static void drawLine(display *d, int r, char s[COLS + 1]) {
     int z;
     SDL_Surface *text = TTF_RenderText_Shaded(d->font, s, d->fg, d->bg);
     int pr = 525 + r * text->h;
-    *d->box = (SDL_Rect) { 760, pr, text->h, text->w }; 
+    *d->box = (SDL_Rect) { 760, pr, text->h, text->w };
     z = SDL_BlitSurface(text, NULL, d->surface, d->box);
     if (z < 0) SDL_Fail("Bad text display", d);
     SDL_FreeSurface(text);
