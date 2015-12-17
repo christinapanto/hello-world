@@ -6,16 +6,13 @@ bool ctrl_pressed;
 struct display {
     SDL_Surface *surface;
     SDL_Window *window;
-    SDL_Renderer *renderer;
-    SDL_Texture *background;
-    SDL_Texture *texture;
-    TTF_Font *font;
+-----test
     Uint32 red;
-    SDL_Color bg, fg;
+    SDL_Csadasdasolor bg, fg;
     SDL_Rect rectangle;
-    SDL_Surface *image[128];
+    SDL_Surface *asdasdasdimage[128];
     SDL_Event *event;
-    SDL_Rect *box;
+    SDL_Rect *box;sdad
 };
 
 struct Button {
