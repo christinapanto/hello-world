@@ -6,13 +6,16 @@ bool ctrl_pressed;
 struct display {
     SDL_Surface *surface;
     SDL_Window *window;
------test
+    SDL_Renderer *renderer;
+    SDL_Texture *background;
+    SDL_Texture *texture;
+    TTF_Font *font;
     Uint32 red;
-    SDL_Csadasdasolor bg, fg;
+    SDL_Color bg, fg;
     SDL_Rect rectangle;
-    SDL_Surface *asdasdasdimage[128];
+    SDL_Surface *image[128];
     SDL_Event *event;
-    SDL_Rect *box;sdad
+    SDL_Rect *box;
 };
 
 struct Button {
@@ -103,69 +106,80 @@ int is_point_in_rect(int x, int y, SDL_Rect *rectangle)
 /* Check for the quit event, return true if detected*/
 char getEvent(display *d, Button *buttons[NUM_BUTTONS])
 {
-    char what = NONE;
-    int sym;
-    //avoid repeating inputs ---------------------
-    while (SDL_PollEvent(d->event) != 0) {
-        switch (d->event->type) {
-        case SDL_QUIT: {
-            what = QUIT;
-            break;
+  char what = NONE;
+  int sym;
+  //avoid repeating inputs ---------------------
+  while (SDL_PollEvent(d->event) != 0) {
+    switch (d->event->type) {
+      case SDL_QUIT: {
+        what = QUIT;
+        break;
+      }
+      case  SDL_TEXTINPUT: {
+        // if ((what != CLICK1) && (what != HINT)) {
+          what = d->event->text.text[0];
+          printf("ordinary character form keyboard %c\n", what);
+          fflush(stdout);
+        // }
+        break;
+      }
+      case SDL_KEYDOWN: {
+        sym = d->event->key.keysym.sym;
+        if (sym == ENTER) {
+          what = (char)sym;
         }
-        case  SDL_TEXTINPUT: {
-            if ((what != CLICK1) && (what != HINT)) {
-                what = d->event->text.text[0];
-                printf("ordinary character form keyboard %c\n", what);
-                fflush(stdout);
-                break;
-            }
+        else if ((sym == SDLK_LCTRL) || (sym == SDLK_RCTRL)) {
+          ctrl_pressed = true; //ctrl part--------------
         }
-        case SDL_KEYDOWN: {
-
-            sym = d->event->key.keysym.sym;
-            if (sym == ENTER) {
-                what = (char)sym;
+        else if (ctrl_pressed) {
+          if (sym == MUTE) {
+            if (Mix_PausedMusic() == true) {
+              Mix_ResumeMusic();
             }
-            else if ((sym == SDLK_LCTRL) || (sym == SDLK_RCTRL)) {
-                ctrl_pressed = true; //ctrl part--------------
+            else {
+              Mix_PauseMusic();
             }
-            else if (ctrl_pressed) {
-                if (sym == MUTE) {
-                    if (Mix_PausedMusic() == true) {
-                        Mix_ResumeMusic();
-                    }
-                    else {
-                        Mix_PauseMusic();
-                    }
-                }
-                if (sym == SDLK_q) {
-                    what = QUIT;
-                }
-                ctrl_pressed = false;
-            }
-            else if (sym == BS || sym == TAB || sym == ENTER || sym == DEL) what = (char)sym;
-            else if (sym == SDLK_UP) what = (char)UP;
-            else if (sym == SDLK_DOWN) what = (char)DOWN;
-            else if (sym == SDLK_LEFT) what = (char)LEFT;
-            else if (sym == SDLK_RIGHT) what = (char)RIGHT;
-            if (what != NONE) printf("special character form keyboard %c\n", sym);
-            fflush(stdout);
-            break;
+          }
+          if (sym == SDLK_q) {
+              what = QUIT;
+          }
+          ctrl_pressed = false;
         }
-        case SDL_MOUSEBUTTONDOWN: {
-            printf("in mouse %d  %d\n", d->event->button.x, d->event->button.y);
-            fflush(stdout);
-            if (is_point_in_rect(d->event->button.x, d->event->button.y, &buttons[0]->rectangle)) {
-                what = CLICK1;
-            }
-            else if (is_point_in_rect(d->event->button.x, d->event->button.y, &buttons[1]->rectangle)) {
-                what = HINT;
-            }
-            break;
+        else if (sym == BS || sym == TAB || sym == ENTER || sym == DEL) {
+          what = (char)sym;
         }
+        else if (sym == SDLK_UP) {
+          what = (char)UP;
         }
+        else if (sym == SDLK_DOWN) {
+          what = (char)DOWN;
+        }
+        else if (sym == SDLK_LEFT) {
+          what = (char)LEFT;
+        }
+        else if (sym == SDLK_RIGHT) {
+          what = (char)RIGHT;
+        }
+        if (what != NONE) {
+          printf("special character form keyboard %c\n", sym);
+          fflush(stdout);
+        }
+        break;
+      }
+      case SDL_MOUSEBUTTONDOWN: {
+        printf("in mouse %d  %d\n", d->event->button.x, d->event->button.y);
+        fflush(stdout);
+        if (is_point_in_rect(d->event->button.x, d->event->button.y, &buttons[0]->rectangle)) {
+          what = CLICK1;
+        }
+        else if (is_point_in_rect(d->event->button.x, d->event->button.y, &buttons[1]->rectangle)) {
+          what = HINT;
+        }
+        break;
+      }
     }
-    return what;
+  }
+  return what;
 }
 
 
@@ -195,11 +209,9 @@ static void loadAllImages(display *d) {
 void drawFrame(display *d, Button *buttons[NUM_BUTTONS])
 {
     int r;
-    SDL_Delay(10 - SDL_GetTicks() % 10);
     printf("frmae\n\n");
     fflush(stdout);
     r = SDL_UpdateWindowSurface(d->window);
-    SDL_FillRect(SDL_GetWindowSurface(d->window), &buttons[0]->rectangle, 150);
 
     if (r < 0) {
         SDL_Fail("Bad window repaint", d);
@@ -263,7 +275,7 @@ static void drawLine(display *d, int r, char s[COLS + 1]) {
     int z;
     SDL_Surface *text = TTF_RenderText_Shaded(d->font, s, d->fg, d->bg);
     int pr = 525 + r * text->h;
-    *d->box = (SDL_Rect) { 760, pr, text->h, text->w }; 
+    *d->box = (SDL_Rect) { 760, pr, text->h, text->w };
     z = SDL_BlitSurface(text, NULL, d->surface, d->box);
     if (z < 0) SDL_Fail("Bad text display", d);
     SDL_FreeSurface(text);
