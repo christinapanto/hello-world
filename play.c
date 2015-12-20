@@ -87,11 +87,11 @@ void run()
             leave = 1;
         }
         else if (result == ENTER) {
-          writeTextToSurface(d, input_instruction, 0,0,255);
-        //  if (strcmp(input_instruction, compare[i]) == 0) {
+          if (strcmp(input_instruction, compare[0]) == 0) {
+            writeTextToSurface(d, input_instruction, 0,0,255);
             money += 100;
             wins++;
-          //}
+          }
         }
         else if (result == HINT) {
           drawEnity(d, which_alien + ALIENS, 100, 200);
@@ -175,10 +175,10 @@ char **createAndFillArraywiththeInstuctions(int depth, int width)
         compare[i] = (char*)calloc(1, sizeof(char*)*width);
         errorForAllocation(compare[i]);
     }
-    compare[0] = "printf(""HELLO"");";
-    compare[1] = "scanf(%d,&galaxies);";
-    compare[3] = "for(i=0;i<5;i++)";
-    compare[4] = "if(planets == 50)";
+    compare[0] = "printf(\"HELLO\");";
+    compare[1] = "scanf(\"%d\",&galaxies);";
+    compare[2] = "for(i=0;i<5;i++)";
+    compare[3] = "if(planets == 50)";
 
     return compare;
 
