@@ -87,7 +87,7 @@ void run()
             leave = 1;
         }
         else if (result == ENTER) {
-          if (strcmp(input_instruction, compare[0]) == 0) {
+          if (strcmp(input_instruction, compare[which_alien]) == 0) {
             writeTextToSurface(d, input_instruction, 0,0,255);
             money += 100;
             wins++;
