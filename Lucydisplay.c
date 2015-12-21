@@ -2,6 +2,7 @@
 
 Mix_Music *gMusic = NULL;
 bool ctrl_pressed;
+MusicState m_state;
 
 struct display {
     SDL_Surface *surface;
@@ -17,6 +18,7 @@ struct display {
     SDL_Event *event;
     SDL_Rect *box;
 };
+
 
 struct Button {
     SDL_Rect rectangle;
@@ -47,7 +49,7 @@ display *newDisplay()
     if (result < 0) {
         SDL_Fail("Bad SDL", d);
     }
-    d->window = SDL_CreateWindow("Diner 51", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1000, 700, SDL_WINDOW_SHOWN);//frame dimenstion
+    d->window = SDL_CreateWindow("Diner 51", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);//frame dimenstion
     if (d->window == NULL) {
         SDL_Fail("Could not create window", d);
     }
@@ -61,6 +63,8 @@ display *newDisplay()
         SDL_Fail("Music oad failed", d);
     }
     Mix_PlayMusic(gMusic, -1);
+    m_state = MUSIC_ON;
+    //END
     d->surface = SDL_GetWindowSurface(d->window);
     if (d->surface == NULL) {
         SDL_Fail("Could not create surface", d);
@@ -73,12 +77,16 @@ display *newDisplay()
     loadAllImages(d);
     //event control
     d->event = malloc(sizeof(SDL_Event));
-    //TTF
+    //TTF Init and Money
     TTF_Init();
     d->font = TTF_OpenFont("Code.ttf", 23);/*font size changed------------------------*/
     if (d->font == NULL) {
         SDL_Fail("Bad font", d);
     }
+
+
+
+    //
     d->bg = (SDL_Color) { 253, 205, 146, 255 };
     d->fg = (SDL_Color) { 0, 0, 0, 255 };
     SDL_StartTextInput();
@@ -136,9 +144,11 @@ char getEvent(display *d, Button *buttons[NUM_BUTTONS])
                 if (sym == MUTE) {
                     if (Mix_PausedMusic() == true) {
                         Mix_ResumeMusic();
+                        m_state = MUSIC_ON;
                     }
                     else {
                         Mix_PauseMusic();
+                        m_state = MUSIC_OFF;
                     }
                 }
                 if (sym == SDLK_q) {
@@ -199,6 +209,8 @@ void drawFrame(display *d, Button *buttons[NUM_BUTTONS])
 {
     int r;
     SDL_Delay(10 - SDL_GetTicks() % 10);
+    /*printf("frmae\n\n");
+    fflush(stdout);*/
     r = SDL_UpdateWindowSurface(d->window);
     SDL_FillRect(SDL_GetWindowSurface(d->window), &buttons[0]->rectangle, 150);
 
@@ -229,6 +241,7 @@ void drawEnity(display *d, int what, int x, int y)
 
 }
 
+
 void writeTextToSurface(display *d, char *message, int r, int g, int b)
 {
     SDL_Surface *text;
@@ -243,7 +256,7 @@ static void SDL_Fail(char *s, display *d) {
     fprintf(stderr, "%s %s \n", s, SDL_GetError());
     fflush(stdout);
     QuitGame(d);
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
 /* SDL_Quit() takes no arguments, and should be called at the end
@@ -280,4 +293,62 @@ void drawGrid(display *d, Text s, int cr, int cc) {
     *d->box = (SDL_Rect) { 760 + 14 * cc - 1, 525 + 31 * cr + 2, 2, 31 - 2 }; // h,w,x,y  ----------- Change
     int z = SDL_FillRect(d->surface, d->box, d->red);
     if (z < 0) SDL_Fail("Bad cursor display", d);
+}
+
+void DrawMoney(Money *p, display *d)
+{
+    int money_length;
+    SDL_Rect box_structure = { 45,175,70,150 };  //First two arg(x,y)  affects the location
+    SDL_Rect *m_box = &box_structure;
+
+    SDL_Color text_color = { 0, 255, 0 };//
+    money_length = sprintf(p->moneyText, "$: %d", p->moneyNum);
+    p->font = TTF_OpenFont("Code.ttf", 40);
+    p->moneySurface = TTF_RenderText_Blended(p->font, p->moneyText, text_color);
+    SDL_BlitSurface(p->moneySurface, NULL, d->surface, m_box);
+    /*SDL_FreeSurface*/
+}
+void DrawJukeBox(display *d, MusicState mBoxState)
+{
+    SDL_Surface *CurrentJukeBoxSf = NULL;
+    if (mBoxState == MUSIC_ON)
+    {
+        CurrentJukeBoxSf = gJukeBoxSurface[MUSIC_ON];
+    }
+    else if (mBoxState == MUSIC_OFF)
+    {
+        CurrentJukeBoxSf = gJukeBoxSurface[MUSIC_OFF];
+    }
+    SDL_Rect music_box_structure = { 40,350,70,150 };//h,w,x,y  
+    SDL_Rect *mb_rect = &music_box_structure;
+    
+    SDL_BlitSurface(CurrentJukeBoxSf, NULL, d->surface, mb_rect);
+
+}
+
+SDL_Surface* LoadSurface(char *filename) //load image and reports error if there is 
+{
+    SDL_Surface* tempSurface = SDL_LoadBMP(filename);
+    if (tempSurface == NULL)
+    {
+        printf("Unable to load image %s! SDL Error : %s\n", filename, SDL_GetError());
+    }
+    return tempSurface;
+}
+
+
+bool LoadMedia()
+{
+    bool success = true;
+    gJukeBoxSurface[MUSIC_ON] = LoadSurface("JukeBox_on.bmp");
+    if (gJukeBoxSurface[MUSIC_ON] == NULL) {
+        printf("Failed to load music on image!\n");
+        success = false;
+    }
+    gJukeBoxSurface[MUSIC_OFF] = LoadSurface("JukeBox_Off.bmp");
+    if (gJukeBoxSurface[MUSIC_OFF] == NULL) {
+        printf("Failed to load music off image!\n");
+        success = false;
+    }
+    return success;
 }
