@@ -1,9 +1,5 @@
 #include "display.h"
 
-Mix_Music *gMusic = NULL;
-bool ctrl_pressed;
-MusicState m_state;
-
 struct display {
     SDL_Surface *surface;
     SDL_Window *window;
@@ -58,11 +54,30 @@ display *newDisplay()
         Mix_GetError();
         SDL_Fail("SDL Mixer could not initialise", d);
     }
-    gMusic = Mix_LoadMUS("DINER51_SONG01.wav");
-    if (gMusic == NULL) {
-        SDL_Fail("Music oad failed", d);
+    gCurrentSongIndex = 0;
+    gMusic[0] = Mix_LoadMUS("DINER51_SONG01.wav");
+    if (gMusic[0] == NULL) {
+        SDL_Fail("Music1 load failed", d);
     }
-    Mix_PlayMusic(gMusic, -1);
+    //Music Library---------
+    gMusic[1] = Mix_LoadMUS("HomeScreenSong01.wav");
+    if (gMusic[1] == NULL) {
+        SDL_Fail("Music2 load failed", d);
+    }
+    gMusic[2] = Mix_LoadMUS("music3.wav");
+    if (gMusic[1] == NULL) {
+        SDL_Fail("Music2 load failed", d);
+    }
+    gMusic[3] = Mix_LoadMUS("music4.wav");
+    if (gMusic[1] == NULL) {
+        SDL_Fail("Music2 load failed", d);
+    }
+    gMusic[4] = Mix_LoadMUS("music5.wav");
+    if (gMusic[1] == NULL) {
+        SDL_Fail("Music2 load failed", d);
+    }
+    
+    Mix_PlayMusic(gMusic[gCurrentSongIndex], -1);
     m_state = MUSIC_ON;
     //END
     d->surface = SDL_GetWindowSurface(d->window);
@@ -153,6 +168,11 @@ char getEvent(display *d, Button *buttons[NUM_BUTTONS])
                 }
                 if (sym == SDLK_q) {
                     what = QUIT;
+                }
+                //----------next song
+                if (sym == SDLK_n) {
+                    NextSong();
+                    m_state = MUSIC_ON;
                 }
                 ctrl_pressed = false;
             }
@@ -294,7 +314,7 @@ void drawGrid(display *d, Text s, int cr, int cc) {
     int z = SDL_FillRect(d->surface, d->box, d->red);
     if (z < 0) SDL_Fail("Bad cursor display", d);
 }
-
+//----------
 void DrawMoney(Money *p, display *d)
 {
     int money_length;
@@ -308,6 +328,7 @@ void DrawMoney(Money *p, display *d)
     SDL_BlitSurface(p->moneySurface, NULL, d->surface, m_box);
     /*SDL_FreeSurface*/
 }
+//-------------
 void DrawJukeBox(display *d, MusicState mBoxState)
 {
     SDL_Surface *CurrentJukeBoxSf = NULL;
@@ -325,7 +346,7 @@ void DrawJukeBox(display *d, MusicState mBoxState)
     SDL_BlitScaled(CurrentJukeBoxSf, NULL, d->surface, &music_box_structure);
 
 }
-
+//-------------
 SDL_Surface* LoadSurface(char *filename) //load image and reports error if there is 
 {
     SDL_Surface* tempSurface = SDL_LoadBMP(filename);
@@ -336,19 +357,29 @@ SDL_Surface* LoadSurface(char *filename) //load image and reports error if there
     return tempSurface;
 }
 
-
+//--------------
 bool LoadMedia()
 {
     bool success = true;
     gJukeBoxSurface[MUSIC_ON] = LoadSurface("JukeBox_on.bmp");
     if (gJukeBoxSurface[MUSIC_ON] == NULL) {
-        printf("Failed to load music on image!\n");
+        printf("Failed to load JukeBoxOn image!\n");
         success = false;
     }
     gJukeBoxSurface[MUSIC_OFF] = LoadSurface("JukeBox_Off.bmp");
     if (gJukeBoxSurface[MUSIC_OFF] == NULL) {
-        printf("Failed to load music off image!\n");
+        printf("Failed to load JukeBoxOff image!\n");
         success = false;
     }
     return success;
+}
+
+void NextSong()
+{
+    gCurrentSongIndex++;
+    if (gCurrentSongIndex >= 5) {
+        gCurrentSongIndex -= 5;
+    }
+    
+    Mix_PlayMusic(gMusic[gCurrentSongIndex], -1);
 }

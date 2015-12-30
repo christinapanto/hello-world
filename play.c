@@ -43,12 +43,19 @@ void run()
     Cursor *cursor = malloc(sizeof(Cursor));
     cursor->r = 0;  //------------------------------------
     cursor->c = 0;
+    //---------------------------
+    Money *moneyP = malloc(sizeof(Money));
+    moneyP->moneyNum = 5;
+
+    //load jukebox surface
+    LoadMedia();
+
 
     while (!stop  && wins < GAMES) {
         drawEnity(d, 0, 0, 0);
         result = getEvent(d, buttons);
         if (result == QUIT) {
-            stop = 1;;
+            stop = 1;
         }
         user_input = 0;
 
@@ -59,10 +66,13 @@ void run()
         delayUntilNextAlien(1000);
         //Animation loop with logic
         while ((i > POSITION2 || j < POSITION1) && !stop) {
+            DrawJukeBox(d, m_state);
             drawFrame(d, buttons);
             result = getEvent(d, buttons);
             drawEnity(d, which_screen, 0, 0);
             drawGrid(d, grid, cursor->r, cursor->c);
+            DrawMoney(moneyP, d);
+            
             if (result == QUIT) {
                 stop = 1;;
             }
@@ -119,15 +129,25 @@ void run()
 
 // Take action on a key press
 void action(Text grid, Cursor *cursor, char key) {
-    int r = cursor->r, c = cursor->c;
+    int r = cursor->r, c = cursor->c;//both 0 at the moment
     if (' ' <= key && key <= '~' && c < COLS) {
         for (int i = COLS - 1; i > c; i--) grid[r][i] = grid[r][i - 1];
         grid[r][c] = key;
+        /*---------------------fixed text editor*/
+        if ((cursor->c) % 11 == 0 && (cursor->c) != 0) {
+            cursor->r++;
+            cursor->c = -1; //starting point
+        }
         cursor->c++;
     }
     else if (key == BS && cursor->c > 0) {
         for (int i = c - 1; i < COLS - 1; i++) grid[r][i] = grid[r][i + 1];
         grid[r][COLS - 1] = ' ';
+        /*---------------------fixed text editor*/
+        if ((cursor->c == 1) && (cursor->r != 0)) {
+            cursor->r--;
+            cursor->c = 13;
+        }
         cursor->c--;
     }
     else if (key == UP && r > 0) { cursor->r--; }
