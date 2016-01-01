@@ -7,7 +7,12 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include <SDL_mixer.h>
-#define NUM_BUTTONS 3
+#define NUM_BUTTONS 6
+#define INSTRUCTION 20
+#define ALIENS 4
+#define GAMES 10
+#define POSITION1 700
+#define POSITION2 500
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 700 
 
@@ -41,9 +46,10 @@ typedef char Text[ROWS][COLS];
 
 // Control character returned by getKey
 enum {
-    NONE = '\0', BS = '\b', TAB = '\t', ENTER = '\r', DEL = '\177',
-    UP = '\1', DOWN = '\2', LEFT = '\3', RIGHT = '\4', QUIT = '\5',
-    MONEY = '$', MUTE = 'm', CLICK1 = '1', HINT = '2'
+  NONE = '\0', BS = '\b', TAB = '\t', ENTER = '\r', DEL = '\177',
+  UP = '\1', DOWN = '\2', LEFT = '\3', RIGHT = '\4', QUIT = '\5',
+  MONEY = '$', MUTE = 'm', CLICK1 = '\a', HINT = '{', NEWGAME = '\f',
+  BOOTH = ']', STOOL = '[', GREEN = '\v'
 };
 
 display *newDisplay();
