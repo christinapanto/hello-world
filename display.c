@@ -170,6 +170,18 @@ char getEvent(display *d, Button *buttons[NUM_BUTTONS])
         else if (is_point_in_rect(d->event->button.x, d->event->button.y, &buttons[1]->rectangle)) {
           what = HINT;
         }
+        else if (is_point_in_rect(d->event->button.x, d->event->button.y, &buttons[2]->rectangle)) {
+          what = NEWGAME;
+        }
+        else if (is_point_in_rect(d->event->button.x, d->event->button.y, &buttons[3]->rectangle)) {
+          what = STOOL;
+        }
+        else if (is_point_in_rect(d->event->button.x, d->event->button.y, &buttons[4]->rectangle)) {
+          what = BOOTH;
+        }
+        else if (is_point_in_rect(d->event->button.x, d->event->button.y, &buttons[5]->rectangle)) {
+          what = GREEN;
+        }
         break;
       }
     }
@@ -193,21 +205,26 @@ static void loadImage(display *d, int what, char *filename)
   loadImage(d, 2, "image.bmp");
   loadImage(d, 3, "Purple Alien.bmp");
   loadImage(d, 4, "ball.bmp");
-  loadImage(d, 5, "hello_world.bmp");
-  loadImage(d, 6, "ball.bmp");
+  loadImage(d, 5, "Orange Alien.bmp");
+  loadImage(d, 6, "image.bmp");
   loadImage(d, 7, "purplealienhint.bmp");
-  loadImage(d, 8, "image.bmp");
+  loadImage(d, 8, "ball.bmp");
   loadImage(d, 9, "JukeBox_Off.bmp");
 }
 
 void drawFrame(display *d, Button *buttons[NUM_BUTTONS])
 {
   int r;
-  SDL_Delay(10 - SDL_GetTicks() % 10);
   printf("frmae\n\n");
   fflush(stdout);
 
   SDL_FillRect(SDL_GetWindowSurface(d->window), &buttons[0]->rectangle, 150);
+  SDL_FillRect(SDL_GetWindowSurface(d->window), &buttons[1]->rectangle, 150);
+  SDL_FillRect(SDL_GetWindowSurface(d->window), &buttons[2]->rectangle, 150);
+  SDL_FillRect(SDL_GetWindowSurface(d->window), &buttons[3]->rectangle, 150);
+  SDL_FillRect(SDL_GetWindowSurface(d->window), &buttons[4]->rectangle, 150);
+  SDL_FillRect(SDL_GetWindowSurface(d->window), &buttons[5]->rectangle, 150);
+
   SDL_Rect box_structure = { 50,200,0,0 };
   SDL_Rect *box = &box_structure;
   SDL_BlitSurface(d->text, NULL,d->surface, box);
