@@ -45,25 +45,25 @@ display *newDisplay()
   display *d = malloc(sizeof(display));
   result = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
   if (result < 0) {
-      SDL_Fail("Bad SDL", d);
+    SDL_Fail("Bad SDL", d);
   }
   d->window = SDL_CreateWindow("Diner 51", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1000, 700, SDL_WINDOW_SHOWN);//frame dimenstion
   if (d->window == NULL) {
-      SDL_Fail("Could not create window", d);
+    SDL_Fail("Could not create window", d);
   }
   //MUSIC-------------
   if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2040) < 0) {
-      Mix_GetError();
-      SDL_Fail("SDL Mixer could not initialise", d);
+    Mix_GetError();
+    SDL_Fail("SDL Mixer could not initialise", d);
   }
   gMusic = Mix_LoadMUS("DINER51_SONG01.wav");
   if (gMusic == NULL) {
-      SDL_Fail("Music oad failed", d);
+    SDL_Fail("Music oad failed", d);
   }
   Mix_PlayMusic(gMusic, -1);    d->surface = SDL_GetWindowSurface(d->window);
   d->surface = SDL_GetWindowSurface(d->window);
   if (d->surface == NULL) {
-      SDL_Fail("Could not create surface", d);
+    SDL_Fail("Could not create surface", d);
   }
   d->red = SDL_MapRGB(d->surface->format, 102, 0, 0);
   d->box = malloc(sizeof(SDL_Rect));
@@ -76,7 +76,7 @@ display *newDisplay()
   TTF_Init();
   d->font = TTF_OpenFont("Code.ttf", 24);
   if (d->font == NULL) {
-      SDL_Fail("Bad font", d);
+    SDL_Fail("Bad font", d);
   }
   d->bg = (SDL_Color) { 253, 205, 146, 255 };
   d->fg = (SDL_Color) { 0, 0, 0, 255 };
@@ -88,16 +88,16 @@ display *newDisplay()
 int is_point_in_rect(int x, int y, SDL_Rect *rectangle)
 {
   if (x < rectangle->x) {
-      return 0;
+    return 0;
   }
   if (y < rectangle->y) {
-      return 0;
+    return 0;
   }
   if (x > rectangle->x + rectangle->w) {
-      return 0;
+    return 0;
   }
   if (y > rectangle->y + rectangle->h) {
-      return 0;
+    return 0;
   }
   return 1;
 }
@@ -193,14 +193,14 @@ static void loadImage(display *d, int what, char *filename)
 {
   SDL_Surface *image = SDL_LoadBMP(filename);
   if (image == NULL) {
-      SDL_Fail("Bad image file", d);
+    SDL_Fail("Bad image file", d);
   }
   d->image[what] = image;
   }
 
-  static void loadAllImages(display *d)
-  {
-  loadImage(d, 0, "gamescreen2.0.bmp");
+static void loadAllImages(display *d)
+{
+  loadImage(d, 0, "gamescreen2.bmp");
   loadImage(d, 1, "Orange Alien.bmp");
   loadImage(d, 2, "image.bmp");
   loadImage(d, 3, "Purple Alien.bmp");
@@ -231,8 +231,8 @@ void drawFrame(display *d, Button *buttons[NUM_BUTTONS])
 
   r = SDL_UpdateWindowSurface(d->window);
   if (r < 0) {
-      SDL_Fail("Bad window repaint", d);
-      SDL_Delay(20);
+    SDL_Fail("Bad window repaint", d);
+    SDL_Delay(20);
   }
 }
 
@@ -248,11 +248,11 @@ void drawEnity(display *d, int what, int x, int y)
   SDL_Rect box_structure = { x,y,0,0 };
   SDL_Rect *box = &box_structure;
   if (image == NULL) {
-      SDL_Fail("No image", d);
+    SDL_Fail("No image", d);
   }
   r = SDL_BlitSurface(image, NULL, d->surface, box);
   if (r < 0) {
-      SDL_Fail("Bad image display", d);
+    SDL_Fail("Bad image display", d);
   }
 
 }
@@ -290,9 +290,9 @@ void drawGrid(display *d, Text s, int cr, int cc)
   char line[COLS + 1];
   int z;
   for (int r = 0; r < ROWS; r++) {
-      strncpy(line, s[r], COLS);
-      line[COLS] = '\0';
-      drawLine(d, r, line);
+    strncpy(line, s[r], COLS);
+    line[COLS] = '\0';
+    drawLine(d, r, line);
   }
   *d->box = (SDL_Rect) { 760 + 14 * cc - 1, 525 + 31 * cr + 2, 2, 31 - 2 }; // h,w,x,y  ----------- Change
   z = SDL_FillRect(d->surface, d->box, d->red);
