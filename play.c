@@ -33,11 +33,11 @@ void run()
     fflush(stdout);
     exit(1);
   }
-  cursor->r = 0;  //------------------------------------
+  cursor->r = 0;
   cursor->c = 0;
   compare = createAndFillArraywiththeInstuctions(ALIENS, INSTRUCTION);
-  buttons[0] = createButton(940, 580, 40, 70, "SERVE");//x,y,w,h
-  buttons[1] = createButton(260, 360, 40, 70, "HINT");
+  buttons[0] = createButton(890, 640, 80, 30, "SERVE"); //x,y,w,h
+  buttons[1] = createButton(685, 260, 40, 70, "HINT");
   buttons[2] = createButton(0, 0, 40, 70, "NEWGAME");
   buttons[3] = createButton(290, 145, 40, 70, "STOOL");
   buttons[4] = createButton(420, 145, 80, 70, "BOOTH");
@@ -116,10 +116,11 @@ void run()
         if (shop[5]==1) {
           drawEnity(d, 3,100,200);
         }
+        //Transforming the money wich is an integer into a char
+        //so we can print it on screen
         sprintf(mon, "%d", money);
         drawFrame(d, buttons);
         result = getEvent(d, buttons);
-
         drawEnity(d, which_screen, 0, 0);
         drawGrid(d, grid, cursor->r, cursor->c);
         if (result == QUIT) {
@@ -149,10 +150,10 @@ void run()
               drawEnity(d, which_alien + ALIENS, 100, 200);
               hint = 1;
           }
-          else if ((result != NONE ) && ( result != CLICK1 ) && ( result != HINT)
-          && ( result != STOOL) && ( result != NEWGAME) && ( result != BOOTH) && ( result != GREEN) ) {
+          else if ((result != NONE) && (result != CLICK1) && (result != HINT)
+          && (result != STOOL) && (result != NEWGAME) && (result != BOOTH) && (result != GREEN) ) {
             action(grid, cursor, result);
-            if (result>31 && result <127 && result!=DEL) {
+            if (result > 31 && result < 127 && result != DEL) {
               input_instruction[user_input] = result;
               writeTextToSurface(d, input_instruction, 255, 255, 255);
               input_instruction[user_input] = result;
@@ -180,7 +181,7 @@ void run()
           j++;
           result = getEvent(d, buttons);
           if (result == QUIT) {
-              stop = 1;;
+            stop = 1;;
           }
         }
       }
@@ -191,68 +192,95 @@ void run()
 }
 
 // Take action on a key press
-void action(Text grid, Cursor *cursor, char key) {
-    int r = cursor->r, c = cursor->c;
-    if (' ' <= key && key <= '~' && c < COLS) {
-        for (int i = COLS - 1; i > c; i--) grid[r][i] = grid[r][i - 1];
-        grid[r][c] = key;
-        cursor->c++;
+void action(Text grid, Cursor *cursor, char key)
+{
+  int r = cursor->r, c = cursor->c;
+  if (' ' <= key && key <= '~' && c < COLS) {
+    for (int i = COLS - 1; i > c; i--) {
+      grid[r][i] = grid[r][i - 1];
     }
-    else if (key == BS && cursor->c > 0) {
-        for (int i = c - 1; i < COLS - 1; i++) grid[r][i] = grid[r][i + 1];
-        grid[r][COLS - 1] = ' ';
-        cursor->c--;
+    grid[r][c] = key;
+    cursor->c++;
+  }
+  else if (key == BS && cursor->c > 0) {
+    for (int i = c - 1; i < COLS - 1; i++) {
+      grid[r][i] = grid[r][i + 1];
     }
-    else if (key == UP && r > 0) { cursor->r--; }
-    else if (key == DOWN && r < ROWS - 1) { cursor->r++; }
-    else if (key == LEFT && c > 0) cursor->c--;
-    else if (key == RIGHT && c < COLS) cursor->c++;
+    grid[r][COLS - 1] = ' ';
+    cursor->c--;
+  }
+  else if (key == UP && r > 0) {
+    cursor->r--;
+  }
+  else if (key == DOWN && r < ROWS - 1) {
+    cursor->r++;
+  }
+  else if (key == LEFT && c > 0) {
+    cursor->c--;
+  }
+  else if (key == RIGHT && c < COLS) {
+    cursor->c++;
+  }
+
 }
 
 // Create some arbitrary initial text
-void fillGrid(Text grid) {
-    strncpy(grid[0], "            ", COLS);
-    strncpy(grid[1], "            ", COLS);
-    strncpy(grid[2], "            ", COLS);
-    strncpy(grid[3], "            ", COLS);
-    /*strncpy(grid[4], "                    ", COLS);*/
+void fillGrid(Text grid)
+{
+  strncpy(grid[0], "            ", COLS);
+  strncpy(grid[1], "            ", COLS);
+  strncpy(grid[2], "            ", COLS);
+  strncpy(grid[3], "            ", COLS);
 }
 
 char **createAndFillArraywiththeInstuctions(int depth, int width)
 {
-    int i;
-    char **compare;
-    compare = (char**)calloc(depth, sizeof(char*));
-    if (compare == NULL) {
-        fprintf(stderr, "The allocation of memory for the 2D array failed\n");
-        exit(1);
-    }
-    for (i = 0; i < width; i++) {
-        compare[i] = (char*)calloc(1, sizeof(char*)*width);
-        errorForAllocation(compare[i]);
-    }
-    compare[0] = "printf(\"HELLO\");";
-    compare[1] = "scanf(\"%d\",&galaxies);";
-    compare[2] = "for(i=0;i<5;i++)";
-    compare[3] = "if(planets == 50)";
-
-    return compare;
-
+  int i;
+  char **compare;
+  compare = (char**)calloc(depth, sizeof(char*));
+  if (compare == NULL) {
+    fprintf(stderr, "The allocation of memory for the 2D array failed\n");
+    exit(1);
+  }
+  for (i = 0; i < width; i++) {
+    compare[i] = (char*)calloc(1, sizeof(char*)*width);
+    errorForAllocation(compare[i]);
+  }
+  compare[0] = "printf(\"HELLO\");";
+  compare[1] = "scanf(\"%d\",&galaxies);";
+  compare[2] = "for(i=0;i<5;i++)";
+  compare[3] = "if(planets==50)";
+  return compare;int i;
+  char **compare;
+  compare = (char**)calloc(depth, sizeof(char*));
+  if (compare == NULL) {
+    fprintf(stderr, "The allocation of memory for the 2D array failed\n");
+    exit(1);
+  }
+  for (i = 0; i < width; i++) {
+    compare[i] = (char*)calloc(1, sizeof(char*)*width);
+    errorForAllocation(compare[i]);
+  }
+  compare[0] = "printf(\"HELLO\");";
+  compare[1] = "scanf(\"%d\",&galaxies);";
+  compare[2] = "for(i=0;i<5;i++)";
+  compare[3] = "if(planets==50)";
+  return compare;
 }
 
 void errorForAllocation(char *c)
 {
-    if (c == NULL) {
-        fprintf(stderr, "The allocation of memory for the character array failed\n");
-        fflush(stdout);
-        exit(1);
-    }
+  if (c == NULL) {
+    fprintf(stderr, "The allocation of memory for the character array failed\n");
+    fflush(stdout);
+    exit(1);
+  }
 }
 
 void freeTheArray(char **compare, int depth)
 {
-    int i;
-    for (i = depth; i > 0; i--) {
-        free(compare[i]);
-    }
+  int i;
+  for (i = depth; i > 0; i--) {
+    free(compare[i]);
+  }
 }
