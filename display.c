@@ -1,29 +1,5 @@
 #include "display.h"
 
-struct display {
-    SDL_Surface *surface;
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-    SDL_Texture *background;
-    SDL_Texture *texture;
-    TTF_Font *font;
-    Uint32 red;
-    SDL_Color bg, fg;
-    SDL_Rect rectangle;
-    SDL_Surface *image[128];
-    SDL_Event *event;
-    SDL_Rect *box;
-};
-
-
-struct Button {
-    SDL_Rect rectangle;
-    SDL_Surface *image;
-    char message[255];
-};
-
-static void SDL_Fail(char *s, display *d);
-
 Button *createButton(int x, int y, int w, int h, char *message) {
     Button *button = malloc(sizeof(Button));
     button->rectangle.x = x;
@@ -33,8 +9,6 @@ Button *createButton(int x, int y, int w, int h, char *message) {
     strcpy(button->message, message);
     return button;
 }
-
-static void loadAllImages(display *d);
 
 display *newDisplay()
 {
@@ -55,28 +29,7 @@ display *newDisplay()
         SDL_Fail("SDL Mixer could not initialise", d);
     }
     gCurrentSongIndex = 0;
-    gMusic[0] = Mix_LoadMUS("DINER51_SONG01.wav");
-    if (gMusic[0] == NULL) {
-        SDL_Fail("Music1 load failed", d);
-    }
-    //Music Library---------
-    gMusic[1] = Mix_LoadMUS("HomeScreenSong01.wav");
-    if (gMusic[1] == NULL) {
-        SDL_Fail("Music2 load failed", d);
-    }
-    gMusic[2] = Mix_LoadMUS("music3.wav");
-    if (gMusic[1] == NULL) {
-        SDL_Fail("Music2 load failed", d);
-    }
-    gMusic[3] = Mix_LoadMUS("music4.wav");
-    if (gMusic[1] == NULL) {
-        SDL_Fail("Music2 load failed", d);
-    }
-    gMusic[4] = Mix_LoadMUS("music5.wav");
-    if (gMusic[1] == NULL) {
-        SDL_Fail("Music2 load failed", d);
-    }
-    
+    LoadMusic(d);
     Mix_PlayMusic(gMusic[gCurrentSongIndex], -1);
     m_state = MUSIC_ON;
     //END
@@ -98,8 +51,6 @@ display *newDisplay()
     if (d->font == NULL) {
         SDL_Fail("Bad font", d);
     }
-
-
 
     //
     d->bg = (SDL_Color) { 253, 205, 146, 255 };
@@ -127,7 +78,7 @@ int is_point_in_rect(int x, int y, SDL_Rect *rectangle)
 }
 
 /* Check for the quit event, return true if detected*/
-char getEvent(display *d, Button *buttons[NUM_BUTTONS])
+char getEvent(display *d, Button *buttons[NUM_BUTTONS],Button *HomeButtons[HOME_BUTTON_NUM])
 {
     char what = NONE;
     int sym;
@@ -188,11 +139,20 @@ char getEvent(display *d, Button *buttons[NUM_BUTTONS])
         case SDL_MOUSEBUTTONDOWN: {
             printf("in mouse %d  %d\n", d->event->button.x, d->event->button.y);
             fflush(stdout);
-            if (is_point_in_rect(d->event->button.x, d->event->button.y, &buttons[0]->rectangle)) {
-                what = CLICK1;
+            //-------------------------------------
+            if (gScene == HOME_SCREEN) {
+                if (is_point_in_rect(d->event->button.x, d->event->button.y, &HomeButtons[0]->rectangle)) {
+                    what = ENTER_GAME;
+                }
             }
-            else if (is_point_in_rect(d->event->button.x, d->event->button.y, &buttons[1]->rectangle)) {
-                what = HINT;
+            else
+            {
+                if (is_point_in_rect(d->event->button.x, d->event->button.y, &buttons[0]->rectangle)) {
+                    what = CLICK1;
+                }
+                else if (is_point_in_rect(d->event->button.x, d->event->button.y, &buttons[1]->rectangle)) {
+                    what = HINT;
+                }
             }
             break;
         }
@@ -223,6 +183,10 @@ static void loadAllImages(display *d) {
     loadImage(d, 7, "purplealienhint.bmp");
     loadImage(d, 8, "image.bmp");
     loadImage(d, 9, "JukeBox_Off.bmp");
+    //---------------------Scene
+    loadImage(d, 10, "home_screen.bmp");
+    loadImage(d, 11, "option_screen.bmp");
+    loadImage(d, 12, "about_screen.bmp");
 }
 
 void drawFrame(display *d, Button *buttons[NUM_BUTTONS])
@@ -256,7 +220,7 @@ void drawEnity(display *d, int what, int x, int y)
     }
     r = SDL_BlitSurface(image, NULL, d->surface, box);
     if (r < 0) {
-        SDL_Fail("Bad image display", d);
+        SDL_Fail("Bad image display in drawEntity", d);
     }
 
 }
@@ -358,17 +322,48 @@ SDL_Surface* LoadSurface(char *filename) //load image and reports error if there
 }
 
 //--------------
-bool LoadMedia()
+bool LoadMedia(display *d)
 {
     bool success = true;
     gJukeBoxSurface[MUSIC_ON] = LoadSurface("JukeBox_on.bmp");
     if (gJukeBoxSurface[MUSIC_ON] == NULL) {
-        printf("Failed to load JukeBoxOn image!\n");
+        SDL_Fail("Failed to load JukeBoxOn image!\n",d);
         success = false;
     }
     gJukeBoxSurface[MUSIC_OFF] = LoadSurface("JukeBox_Off.bmp");
     if (gJukeBoxSurface[MUSIC_OFF] == NULL) {
-        printf("Failed to load JukeBoxOff image!\n");
+        SDL_Fail("Failed to load JukeBoxOff image!\n",d);
+        success = false;
+    }
+    return success;
+}
+
+bool LoadMusic(display *d)
+{
+    bool success = true;
+    gMusic[0] = Mix_LoadMUS("DINER51_SONG01.wav");
+    if (gMusic[0] == NULL) {
+        SDL_Fail("Music1 load failed", d);
+        success = false;
+    }
+    gMusic[1] = Mix_LoadMUS("HomeScreenSong01.wav");
+    if (gMusic[1] == NULL) {
+        SDL_Fail("Music2 load failed", d);
+        success = false;
+    }
+    gMusic[2] = Mix_LoadMUS("music3.wav");
+    if (gMusic[1] == NULL) {
+        SDL_Fail("Music2 load failed", d);
+        success = false;
+    }
+    gMusic[3] = Mix_LoadMUS("music4.wav");
+    if (gMusic[1] == NULL) {
+        SDL_Fail("Music2 load failed", d);
+        success = false;
+    }
+    gMusic[4] = Mix_LoadMUS("music5.wav");
+    if (gMusic[1] == NULL) {
+        SDL_Fail("Music2 load failed", d);
         success = false;
     }
     return success;
@@ -382,4 +377,15 @@ void NextSong()
     }
     
     Mix_PlayMusic(gMusic[gCurrentSongIndex], -1);
+}
+
+//-------------------
+void DrawHomeButtons(display *d,Button *HomeButtons[HOME_BUTTON_NUM])
+{
+    SDL_Rect game_button_strct = { 400,300,HOME_BUTTON_WIDTH,HOME_BUTTON_HEIGHT };
+    HomeButtons[0]->rectangle = game_button_strct;
+    SDL_Rect option_button_strct = { 400,410,HOME_BUTTON_WIDTH,HOME_BUTTON_HEIGHT };
+    HomeButtons[1]->rectangle = option_button_strct;
+    SDL_Rect about_button_strct = { 400,520,HOME_BUTTON_WIDTH,HOME_BUTTON_HEIGHT };
+    HomeButtons[2]->rectangle = about_button_strct;
 }

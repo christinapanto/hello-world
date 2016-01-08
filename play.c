@@ -30,7 +30,10 @@ void run()
 {
     display *d = newDisplay();
     Button *buttons[NUM_BUTTONS];
-    int i, j, stop = 0, leave = 1, which_alien, money = 0, which_screen = 0;
+    Button *HomeButtons[HOME_BUTTON_NUM];//------------
+    bool stop = false;
+    int i, j, leave = 1, which_alien, money = 0; /*which_screen = HOME_SCREEN;*/
+    gScene = ABOUT_SCREEN;//---------------ENTER HOME
     char result, **compare, *input_instruction;
     int user_input, wins = 0;
     compare = createAndFillArraywiththeInstuctions(ALIENS, INSTRUCTION);
@@ -38,6 +41,12 @@ void run()
     errorForAllocation(input_instruction);
     buttons[0] = createButton(940, 580, 40, 70, "WORKS");//x,y,w,h
     buttons[1] = createButton(280, 430, 40, 70, "WORKS");
+    //--------------
+    HomeButtons[0] = createButton(400, 300, HOME_BUTTON_WIDTH, HOME_BUTTON_HEIGHT, "HOME");
+    HomeButtons[1] = createButton(400, 410, HOME_BUTTON_WIDTH, HOME_BUTTON_HEIGHT, "HOME");
+    HomeButtons[2] = createButton(400, 520, HOME_BUTTON_WIDTH, HOME_BUTTON_HEIGHT, "HOME");
+
+
     Text grid;
     fillGrid(grid);
     Cursor *cursor = malloc(sizeof(Cursor));
@@ -48,82 +57,120 @@ void run()
     moneyP->moneyNum = 5;
 
     //load jukebox surface
-    LoadMedia();
+    LoadMedia(d);
 
 
     while (!stop  && wins < GAMES) {
-        drawEnity(d, 0, 0, 0);
-        result = getEvent(d, buttons);
+        drawEnity(d, HOME_SCREEN, 0, 0);
+        result = getEvent(d, buttons, HomeButtons);
         if (result == QUIT) {
             stop = 1;
         }
         user_input = 0;
-
         printf("in main");
         fflush(stdout);
         i = POSITION1, j = POSITION2; //aline location 
         which_alien = rand() % 4 + 1;
         delayUntilNextAlien(1000);
+        //SceneManage - ----------------------
+        if (gScene == HOME_SCREEN)
+        {
+            while ((!stop) && (gScene == HOME_SCREEN)) {
+                drawFrame(d, HomeButtons);
+                result = getEvent(d, buttons, HomeButtons);
+                drawEnity(d, HOME_SCREEN, 0, 0);
+                switch (result)
+                {
+                case QUIT: {
+                    stop = true; break;
+                }
+                case ENTER_GAME: {
+                    gScene = GAME_SCREEN; break;
+                }
+                case ENTER_OPTION: {
+                    gScene = OPTION_SCREEN; break;
+                }
+                case ENTER_ABOUT: {
+                    gScene = ABOUT_SCREEN; break;
+                }
+                default:
+                    break;
+                }
+            }
+        }
         //Animation loop with logic
-        while ((i > POSITION2 || j < POSITION1) && !stop) {
-            DrawJukeBox(d, m_state);
-            drawFrame(d, buttons);
-            result = getEvent(d, buttons);
-            drawEnity(d, which_screen, 0, 0);
-            drawGrid(d, grid, cursor->r, cursor->c);
-            DrawMoney(moneyP, d);
-            
-            if (result == QUIT) {
-                stop = 1;;
-            }
-            else if (result == ENTER) {
-                // if (strcmp(&input_instruction[which_alien], compare[i]) == 0) {
-                money += 100;
-                leave = 1;
-                wins++;
-                // };
-            }
-            if (i > POSITION2 && result != QUIT) {
-                drawEnity(d, which_alien, 300, i);
-                i--;
-                leave = 0;
-            }
-            if (leave == 0 && i == POSITION2 && result != QUIT) {
-                drawEnity(d, which_alien, 300, POSITION2);
-                result = getEvent(d, buttons);
-                if (result == CLICK1) {
+        else if (gScene == OPTION_SCREEN)
+        {
+            ;
+        }
+        else if (gScene == ABOUT_SCREEN)
+        {
+            drawEnity(d, ABOUT_SCREEN, 0, 0);
+            SDL_UpdateWindowSurface(d->window);
+        }
+        else if (gScene == GAME_SCREEN)
+        {
+            while ((i > POSITION2 || j < POSITION1) && !stop) {
+                DrawJukeBox(d, m_state);
+                drawFrame(d, buttons);
+                result = getEvent(d, buttons, HomeButtons);
+                drawEnity(d, GAME_SCREEN, 0, 0);
+                drawGrid(d, grid, cursor->r, cursor->c);
+                DrawMoney(moneyP, d);//-------------
+
+                if (result == QUIT) {
+                    stop = 1;
+                }
+                else if (result == ENTER) {
+                    // if (strcmp(&input_instruction[which_alien], compare[i]) == 0) {
+                    money += 100;
                     leave = 1;
+                    wins++;
+                    // };
                 }
-                else if (result == HINT) {
-                    writeTextToSurface(d, "PLEASW WORK!!!", 255, 255, 255);
-                    drawEnity(d, which_alien + ALIENS, 100, 200);
+                if (i > POSITION2 && result != QUIT) {
+                    drawEnity(d, which_alien, 300, i);
+                    i--;
+                    leave = 0;
                 }
-            }
-            if (isalpha(result)) {
-                input_instruction[user_input] = result;
-                if (user_input < ALIENS) {
-                    user_input++;
+                if (leave == 0 && i == POSITION2 && result != QUIT) {
+                    drawEnity(d, which_alien, 300, POSITION2);
+                    result = getEvent(d, buttons, HomeButtons);
+                    if (result == CLICK1) {
+                        leave = 1;
+                    }
+                    else if (result == HINT) {
+                        writeTextToSurface(d, "PLEASW WORK!!!", 255, 255, 255);
+                        drawEnity(d, which_alien + ALIENS, 100, 200);
+                    }
                 }
-                else {
-                    printf("You are trying to write something to long\n");
+                if (isalpha(result)) {
+                    input_instruction[user_input] = result;
+                    if (user_input < ALIENS) {
+                        user_input++;
+                    }
+                    else {
+                        printf("You are trying to write something to long\n");
+                    }
                 }
-            }
-            else if (result == DEL) {
-                if (user_input >= 0) {
-                    user_input--;
+                else if (result == DEL) {
+                    if (user_input >= 0) {
+                        user_input--;
+                    }
                 }
+                if (j < POSITION1 && leave == 1 && result != QUIT) {
+                    drawEnity(d, which_alien, 300, j);
+                    j++;
+                    result = getEvent(d, buttons, HomeButtons);
+                }
+                if (result == QUIT) {
+                    stop = 1;;
+                }
+                else if ((result != NONE) && (result != CLICK1) && (result != HINT)) { action(grid, cursor, result); }
             }
-            if (j < POSITION1 && leave == 1 && result != QUIT) {
-                drawEnity(d, which_alien, 300, j);
-                j++;
-                result = getEvent(d, buttons);
-            }
-            if (result == QUIT) {
-                stop = 1;;
-            }
-            else if ((result != NONE )&&( result!=CLICK1 )&&(result!=HINT)) { action(grid, cursor, result); }
         }
     }
+
     QuitGame(d);
 }
 
