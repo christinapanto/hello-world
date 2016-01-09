@@ -78,13 +78,16 @@ int is_point_in_rect(int x, int y, SDL_Rect *rectangle)
 }
 
 /* Check for the quit event, return true if detected*/
-char getEvent(display *d, Button *buttons[NUM_BUTTONS],Button *HomeButtons[HOME_BUTTON_NUM])
+char getEvent(display *d, Button *buttons[NUM_BUTTONS], Button *HomeButtons[HOME_BUTTON_NUM], Button *OptionButtons[O_B_TOTAL])
 {
     char what = NONE;
     int sym;
     //avoid repeating inputs ---------------------
     while (SDL_PollEvent(d->event) != 0) {
+        int x, y;
+        SDL_GetMouseState(&x, &y);
         switch (d->event->type) {
+
         case SDL_QUIT: {
             what = QUIT;
             break;
@@ -144,8 +147,14 @@ char getEvent(display *d, Button *buttons[NUM_BUTTONS],Button *HomeButtons[HOME_
                 if (is_point_in_rect(d->event->button.x, d->event->button.y, &HomeButtons[0]->rectangle)) {
                     what = ENTER_GAME;
                 }
+                if (is_point_in_rect(d->event->button.x, d->event->button.y, &HomeButtons[1]->rectangle)) {
+                    what = ENTER_OPTION;
+                }
+                if (is_point_in_rect(d->event->button.x, d->event->button.y, &HomeButtons[2]->rectangle)) {
+                    what = ENTER_ABOUT;
+                }
             }
-            else
+            else if (gScene == GAME_SCREEN)
             {
                 if (is_point_in_rect(d->event->button.x, d->event->button.y, &buttons[0]->rectangle)) {
                     what = CLICK1;
@@ -156,6 +165,48 @@ char getEvent(display *d, Button *buttons[NUM_BUTTONS],Button *HomeButtons[HOME_
             }
             break;
         }
+        case SDL_MOUSEMOTION: {
+
+            if (gScene == HOME_SCREEN)
+            {
+                if (is_point_in_rect(x, y, &HomeButtons[0]->rectangle)) {
+                    what = HOVER_GAME;
+                }
+                else if (is_point_in_rect(x, y, &HomeButtons[1]->rectangle)) {
+                    what = HOVER_OPTION;
+                }
+                else if (is_point_in_rect(x, y, &HomeButtons[2]->rectangle)) {
+                    what = HOVER_ABOUT;
+                }
+                else
+                {
+                    what = OUT_BUTTON;
+                }
+            }
+            else if (gScene == OPTION_SCREEN)
+            {
+                if (is_point_in_rect(x, y, &OptionButtons[BACK]->rectangle)) {
+                    what = BACK_HOVER;
+                }
+                else
+                {
+                    what = OUT_BACK;
+                }
+
+            }
+            break;
+        }
+        case SDL_MOUSEBUTTONUP:
+        {
+            if (gScene == OPTION_SCREEN)
+            {
+                if (is_point_in_rect(x, y, &OptionButtons[BACK]->rectangle)) {
+                    what = BACK_HOME;
+                }
+            }
+        }
+        default:
+            break;
         }
     }
     return what;
@@ -292,6 +343,31 @@ void DrawMoney(Money *p, display *d)
     SDL_BlitSurface(p->moneySurface, NULL, d->surface, m_box);
     /*SDL_FreeSurface*/
 }
+//--------------------
+void DrawMusicName(Money *p, display *d)
+{
+    char *musicName = "YOU TELL ME!";
+    SDL_Rect box_structure = { 100,430,70,150 };  //First two arg(x,y)  affects the location
+    SDL_Rect *m_box = &box_structure;
+
+    SDL_Color text_color = { 0, 0, 0 };//
+    switch (gCurrentSongIndex)
+    {
+    case 0: musicName = "YOU TELL ME!"; break;
+    case 1: musicName = "I DONT KNOW!"; break;
+    case 2: musicName = "DRUMS HUH!"; break;
+    case 3: musicName = "LET'S GET HIGH!"; break;
+    case 4: musicName = "COME ON AND DANCE!"; break;
+    default:
+        musicName = "YOU TELL ME!"; break;
+        break;
+    }
+    sprintf(p->moneyText, musicName, p->moneyNum);
+    p->font = TTF_OpenFont("Code.ttf", 80);
+    p->moneySurface = TTF_RenderText_Blended(p->font, p->moneyText, text_color);
+    SDL_BlitSurface(p->moneySurface, NULL, d->surface, m_box);
+    /*SDL_FreeSurface*/
+}
 //-------------
 void DrawJukeBox(display *d, MusicState mBoxState)
 {
@@ -327,12 +403,33 @@ bool LoadMedia(display *d)
     bool success = true;
     gJukeBoxSurface[MUSIC_ON] = LoadSurface("JukeBox_on.bmp");
     if (gJukeBoxSurface[MUSIC_ON] == NULL) {
-        SDL_Fail("Failed to load JukeBoxOn image!\n",d);
+        SDL_Fail("Failed to load JukeBoxOn image!\n", d);
         success = false;
     }
     gJukeBoxSurface[MUSIC_OFF] = LoadSurface("JukeBox_Off.bmp");
     if (gJukeBoxSurface[MUSIC_OFF] == NULL) {
-        SDL_Fail("Failed to load JukeBoxOff image!\n",d);
+        SDL_Fail("Failed to load JukeBoxOff image!\n", d);
+        success = false;
+    }
+    //--------------------
+    gHoverSurface[GAME] = LoadSurface("game_hover.bmp");
+    if (gHoverSurface[GAME] == NULL) {
+        SDL_Fail("Failed to load gHoverSurface image!\n", d);
+        success = false;
+    }
+    gHoverSurface[OPTION] = LoadSurface("option_hover.bmp");
+    if (gHoverSurface[OPTION] == NULL) {
+        SDL_Fail("option hover image fail", d);
+        success = false;
+    }
+    gHoverSurface[ABOUT] = LoadSurface("about_hover.bmp");
+    if (gHoverSurface[ABOUT] == NULL) {
+        SDL_Fail("about hover image fail", d);
+        success = false;
+    }
+    gHoverSurface[3] = LoadSurface("back_hover.bmp");
+    if (gHoverSurface[3] == NULL) {
+        SDL_Fail("back hover image fail", d);
         success = false;
     }
     return success;
@@ -375,12 +472,12 @@ void NextSong()
     if (gCurrentSongIndex >= 5) {
         gCurrentSongIndex -= 5;
     }
-    
+
     Mix_PlayMusic(gMusic[gCurrentSongIndex], -1);
 }
 
 //-------------------
-void DrawHomeButtons(display *d,Button *HomeButtons[HOME_BUTTON_NUM])
+void DrawHomeButtons(display *d, Button *HomeButtons[HOME_BUTTON_NUM])
 {
     SDL_Rect game_button_strct = { 400,300,HOME_BUTTON_WIDTH,HOME_BUTTON_HEIGHT };
     HomeButtons[0]->rectangle = game_button_strct;
@@ -388,4 +485,36 @@ void DrawHomeButtons(display *d,Button *HomeButtons[HOME_BUTTON_NUM])
     HomeButtons[1]->rectangle = option_button_strct;
     SDL_Rect about_button_strct = { 400,520,HOME_BUTTON_WIDTH,HOME_BUTTON_HEIGHT };
     HomeButtons[2]->rectangle = about_button_strct;
+}//for test
+void DrawGameButton(display *d)
+{
+    SDL_Surface *CurrentButtonSf = NULL;
+    CurrentButtonSf = gHoverSurface[GAME];
+    SDL_Rect button_structure = { 343,246,320,80 };//x,y,w,h  
+    SDL_BlitScaled(CurrentButtonSf, NULL, d->surface, &button_structure);
+
+}
+void DrawBackButton(display *d)
+{
+    SDL_Surface *CurrentButtonSf = NULL;
+    CurrentButtonSf = gHoverSurface[3];
+    SDL_Rect button_structure = { 16,20,220,70 };//x,y,w,h  
+    SDL_BlitScaled(CurrentButtonSf, NULL, d->surface, &button_structure);
+
+}
+void DrawOptionButton(display *d)
+{
+    SDL_Surface *CurrentButtonSf = NULL;
+    CurrentButtonSf = gHoverSurface[OPTION];
+    SDL_Rect button_structure = { 343,356,320,80 };//x,y,w,h  
+    SDL_BlitScaled(CurrentButtonSf, NULL, d->surface, &button_structure);
+
+}
+void DrawAboutButton(display *d)
+{
+    SDL_Surface *CurrentButtonSf = NULL;
+    CurrentButtonSf = gHoverSurface[ABOUT];
+    SDL_Rect button_structure = { 343,466,320,80 };//x,y,w,h  
+    SDL_BlitScaled(CurrentButtonSf, NULL, d->surface, &button_structure);
+
 }

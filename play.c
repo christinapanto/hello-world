@@ -31,20 +31,23 @@ void run()
     display *d = newDisplay();
     Button *buttons[NUM_BUTTONS];
     Button *HomeButtons[HOME_BUTTON_NUM];//------------
+    Button *OptionButtons[O_B_TOTAL];
     bool stop = false;
     int i, j, leave = 1, which_alien, money = 0; /*which_screen = HOME_SCREEN;*/
-    gScene = ABOUT_SCREEN;//---------------ENTER HOME
     char result, **compare, *input_instruction;
     int user_input, wins = 0;
+    gScene = HOME_SCREEN;//---------------ENTER HOME
     compare = createAndFillArraywiththeInstuctions(ALIENS, INSTRUCTION);
     input_instruction = (char*)calloc(1, ALIENS);
     errorForAllocation(input_instruction);
     buttons[0] = createButton(940, 580, 40, 70, "WORKS");//x,y,w,h
     buttons[1] = createButton(280, 430, 40, 70, "WORKS");
     //--------------
-    HomeButtons[0] = createButton(400, 300, HOME_BUTTON_WIDTH, HOME_BUTTON_HEIGHT, "HOME");
-    HomeButtons[1] = createButton(400, 410, HOME_BUTTON_WIDTH, HOME_BUTTON_HEIGHT, "HOME");
-    HomeButtons[2] = createButton(400, 520, HOME_BUTTON_WIDTH, HOME_BUTTON_HEIGHT, "HOME");
+    HomeButtons[0] = createButton(343, 246, HOME_BUTTON_WIDTH, HOME_BUTTON_HEIGHT, "GAME");
+    HomeButtons[1] = createButton(343, 356, HOME_BUTTON_WIDTH, HOME_BUTTON_HEIGHT, "OPTION");
+    HomeButtons[2] = createButton(343, 466, HOME_BUTTON_WIDTH, HOME_BUTTON_HEIGHT, "ABOUT");
+    //---------------
+    OptionButtons[BACK] = createButton(16, 20, BACK_BUTTON_WIDTH, BACK_BUTTON_HEIGHT, "BACK");
 
 
     Text grid;
@@ -55,14 +58,15 @@ void run()
     //---------------------------
     Money *moneyP = malloc(sizeof(Money));
     moneyP->moneyNum = 5;
-
+    Money *musicName = malloc(sizeof(Money));
+    
     //load jukebox surface
     LoadMedia(d);
 
 
     while (!stop  && wins < GAMES) {
         drawEnity(d, HOME_SCREEN, 0, 0);
-        result = getEvent(d, buttons, HomeButtons);
+        result = getEvent(d, buttons, HomeButtons, OptionButtons);
         if (result == QUIT) {
             stop = 1;
         }
@@ -77,8 +81,17 @@ void run()
         {
             while ((!stop) && (gScene == HOME_SCREEN)) {
                 drawFrame(d, HomeButtons);
-                result = getEvent(d, buttons, HomeButtons);
+                result = getEvent(d, buttons, HomeButtons, OptionButtons);
                 drawEnity(d, HOME_SCREEN, 0, 0);
+                if (gGameHoverState == HOVER_GAME) {
+                    DrawGameButton(d);
+                }
+                if (gAboutHoverState == HOVER_ABOUT) {
+                    DrawAboutButton(d);
+                }
+                if (gOptionHoverState == HOVER_OPTION) {
+                    DrawOptionButton(d);
+                }
                 switch (result)
                 {
                 case QUIT: {
@@ -93,19 +106,54 @@ void run()
                 case ENTER_ABOUT: {
                     gScene = ABOUT_SCREEN; break;
                 }
+                case HOVER_GAME: 
+                    gGameHoverState = HOVER_GAME; break;
+                case HOVER_OPTION:
+                    gOptionHoverState = HOVER_OPTION; break;
+                case HOVER_ABOUT:
+                    gAboutHoverState = HOVER_ABOUT; break;
+                case OUT_BUTTON: {
+                    gAboutHoverState = OUT_BUTTON;
+                    gGameHoverState = OUT_BUTTON;
+                    gOptionHoverState = OUT_BUTTON;
+                    break;
+                }
                 default:
                     break;
                 }
             }
         }
-        //Animation loop with logic
         else if (gScene == OPTION_SCREEN)
         {
-            ;
+            while ((!stop) && (gScene == OPTION_SCREEN)) {
+                
+                drawFrame(d, OptionButtons);
+                result = getEvent(d, buttons, HomeButtons, OptionButtons);
+                drawEnity(d, OPTION_SCREEN, 0, 0);
+                DrawMusicName(musicName, d);
+                if (gBackHoverState == BACK_HOVER)
+                {
+                    DrawBackButton(d);//----------------------
+                }
+                switch (result)
+                {
+                case BACK_HOVER:
+                    gBackHoverState = BACK_HOVER; break;
+                case OUT_BACK:
+                    gBackHoverState = OUT_BACK; break;
+                case BACK_HOME:
+                    gScene = HOME_SCREEN; break;
+                default:
+                    break;
+                }
+            }
         }
+        //------------------------------above are changes
+        //Animation loop with logic
         else if (gScene == ABOUT_SCREEN)
         {
             drawEnity(d, ABOUT_SCREEN, 0, 0);
+            
             SDL_UpdateWindowSurface(d->window);
         }
         else if (gScene == GAME_SCREEN)
@@ -113,7 +161,7 @@ void run()
             while ((i > POSITION2 || j < POSITION1) && !stop) {
                 DrawJukeBox(d, m_state);
                 drawFrame(d, buttons);
-                result = getEvent(d, buttons, HomeButtons);
+                result = getEvent(d, buttons, HomeButtons, OptionButtons);
                 drawEnity(d, GAME_SCREEN, 0, 0);
                 drawGrid(d, grid, cursor->r, cursor->c);
                 DrawMoney(moneyP, d);//-------------
@@ -135,7 +183,7 @@ void run()
                 }
                 if (leave == 0 && i == POSITION2 && result != QUIT) {
                     drawEnity(d, which_alien, 300, POSITION2);
-                    result = getEvent(d, buttons, HomeButtons);
+                    result = getEvent(d, buttons, HomeButtons, OptionButtons);
                     if (result == CLICK1) {
                         leave = 1;
                     }
@@ -161,7 +209,7 @@ void run()
                 if (j < POSITION1 && leave == 1 && result != QUIT) {
                     drawEnity(d, which_alien, 300, j);
                     j++;
-                    result = getEvent(d, buttons, HomeButtons);
+                    result = getEvent(d, buttons, HomeButtons, OptionButtons);
                 }
                 if (result == QUIT) {
                     stop = 1;;
